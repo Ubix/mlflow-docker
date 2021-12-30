@@ -4,8 +4,8 @@ from random import random, randint
 from mlflow import mlflow,log_metric, log_param, log_artifacts
 
 if __name__ == "__main__":
+    mlflow.set_tracking_uri('http://localhost:5000')
     with mlflow.start_run() as run:
-        mlflow.set_tracking_uri('http://localhost:5000')
         print("Running mlflow_tracking.py")
 
         log_param("param1", randint(0, 100))
