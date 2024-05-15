@@ -1,4 +1,4 @@
-name: Hive CI CD - Build Push Docker Deploy ArgoCD
+name: MLFlow CI CD - Build Push Docker Deploy ArgoCD
 on:
   push:
 
