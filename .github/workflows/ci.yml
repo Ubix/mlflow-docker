@@ -8,7 +8,7 @@ jobs:
     with:
       role-to-assume: arn:aws:iam::882490700787:role/mlflow-ghactionsopenid
       image-name: mlflow
-      dockerfile-path: .
+      dockerfile-path: /mlflow/.
       DOJO_URL: "https://security-console.schub.cloud/api/v2/import-scan/"
     secrets:
       AUTH_HEADER: ${{ secrets.AUTH_HEADER }}
