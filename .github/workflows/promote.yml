@@ -1,0 +1,54 @@
+name: Promote
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        required: true
+        description: 'Environment to promote to'
+        options:
+        - new-dev
+        - stg
+        - prd
+      # cloudspace_account:
+      #   type: string
+      #   required: false
+      #   description: 'Cloudspace account to promote to'
+      #   default: ''
+
+jobs:
+  authorize:
+    name: Checks if github user has permissions to promote
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check user for team affiliation
+        uses: tspascoal/get-user-teams-membership@v3
+        id: checkUserMember
+        with:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          username: ${{ github.actor }}
+          team: 'dev-ops,datascience-factory-leaders,bacancy-leaders'
+      - name: Stop workflow if user is no member
+        if: ${{ steps.checkUserMember.outputs.isTeamMember == 'false' &&  inputs.environment != 'new-dev' }}
+        run: |
+          echo "You have no rights to trigger this job."
+          exit 1
+
+  call-ci-workflow:
+    uses: Ubix/github-actions-workflows/.github/workflows/ci-custom-build.yaml@v7
+    needs: authorize
+    with:
+      role-to-assume: arn:aws:iam::882490700787:role/mlflow-ghactionsopenid
+      image-name: mlflow
+
+  tag-docker-image:
+    uses: Ubix/github-actions-workflows/.github/workflows/cd-update-tag.yml@main
+    needs: [authorize, call-ci-workflow]
+    with:
+      environment: "${{ inputs.environment }}"
+      service: mlflow
+      tag: ${{needs.call-ci-workflow.outputs.tag}}
+      values-path: cloudspace/overlays/${{ inputs.environment }}
+      tag-path: "image.tag"
+    secrets:
+      token: ${{ secrets.GH_TOKEN }}
