@@ -1,0 +1,26 @@
+name: MLFlow CI CD - Build Push Docker Deploy ArgoCD
+on:
+  push:
+
+jobs:
+  call-ci-workflow:
+    uses: Ubix/github-actions-workflows/.github/workflows/ci-custom-build.yaml@v7
+    with:
+      role-to-assume: arn:aws:iam::882490700787:role/mlflow-ghactionsopenid
+      image-name: mlflow
+      dockerfile-path: .
+      DOJO_URL: "https://security-console.schub.cloud/api/v2/import-scan/"
+    secrets:
+      AUTH_HEADER: ${{ secrets.AUTH_HEADER }}
+
+  tag-docker-image:
+    uses: Ubix/github-actions-workflows/.github/workflows/cd-update-tag.yml@main
+    needs: call-ci-workflow
+    with:
+      environment: "dev"
+      service: metastore
+      tag: ${{needs.call-ci-workflow.outputs.tag}}
+      values-path: cloudspace/overlays/new-dev
+      tag-path: "deployment.image.tag"
+    secrets:
+      token: ${{ secrets.GH_TOKEN }}
