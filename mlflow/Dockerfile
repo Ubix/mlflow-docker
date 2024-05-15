@@ -6,5 +6,8 @@ ADD . /app
 WORKDIR /app
 
 COPY . .
-RUN ["/bin/bash", "-c", "chmod +x wait-for-it.sh"]
+
+SHELL [ "bin/bash", "-c" ]
+
+RUN chmod +x wait-for-it.sh
 
